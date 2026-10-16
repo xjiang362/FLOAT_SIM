@@ -1,0 +1,50 @@
+# ---------------------------------------------------------------------
+# FLOATS_SIM
+#
+# Tracked:   MATLAB source (.m), COMSOL raw results (.txt), parsed sweep
+#            data (.mat that is not regenerable in seconds), docs.
+# Untracked: anything a script regenerates. Figures and videos are the bulk
+#            of the repo by size and change on every plot re-run, so keeping
+#            them out avoids a large binary diff per experiment.
+#
+# To keep a specific figure (e.g. one that went into a write-up), force-add
+# it:  git add -f presentation/SomeFigure.png
+# ---------------------------------------------------------------------
+
+# ---- regenerable figures and media ----
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.eps
+*.svg
+*.mp4
+*.avi
+*.gif
+
+# ---- regenerable simulation caches ----
+# These are written by plotting/comparison scripts and rebuild in seconds.
+presentation/CompareDesignModels.mat
+presentation/reportNumbers.mat
+
+# ---- MATLAB working files ----
+*.asv
+*.m~
+*.autosave
+slprj/
+codegen/
+*.slxc
+*.mex*
+*.p
+
+# ---- MATLAB / OS scratch ----
+profile/
+*.mlx.bak
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- editor ----
+.vscode/
+.idea/
+*.swp

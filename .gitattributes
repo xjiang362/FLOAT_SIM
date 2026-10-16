@@ -1,0 +1,17 @@
+# Normalise line endings so MATLAB sources do not show as wholly rewritten
+# when moving between machines.
+* text=auto
+
+*.m    text diff=matlab
+*.tex  text
+*.csv  text
+*.html text
+
+# COMSOL exports are large fixed-format tables. Treating them as text keeps
+# diffs meaningful when a sweep is re-exported.
+*.txt  text
+
+# Binary: never munge, never try to diff.
+*.mat  binary
+*.png  binary
+*.mp4  binary

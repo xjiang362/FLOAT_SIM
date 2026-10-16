@@ -1,0 +1,503 @@
+<title>FLOATS Capacitance Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --bg:#F7F8FA;
+  --surface:#FFFFFF;
+  --surface-2:#EFF2F6;
+  --ink:#1A1F26;
+  --muted:#5A6472;
+  --faint:#8A94A3;
+  --rule:#DCE2EA;
+  --accent:#0E7C86;
+  --accent-soft:#E2F1F2;
+  --ok:#2F7D4F;
+  --ok-soft:#E4F1E9;
+  --warn:#A8681A;
+  --warn-soft:#F8EEDF;
+  --shadow:0 1px 2px rgba(20,28,40,.05),0 8px 24px -12px rgba(20,28,40,.18);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161C;
+    --surface:#191F27;
+    --surface-2:#1F2731;
+    --ink:#E4E9F0;
+    --muted:#9AA6B6;
+    --faint:#6D7A8B;
+    --rule:#2B343F;
+    --accent:#4FC3CE;
+    --accent-soft:#123034;
+    --ok:#68C48C;
+    --ok-soft:#142C1F;
+    --warn:#D9A05B;
+    --warn-soft:#2E2417;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161C;
+  --surface:#191F27;
+  --surface-2:#1F2731;
+  --ink:#E4E9F0;
+  --muted:#9AA6B6;
+  --faint:#6D7A8B;
+  --rule:#2B343F;
+  --accent:#4FC3CE;
+  --accent-soft:#123034;
+  --ok:#68C48C;
+  --ok-soft:#142C1F;
+  --warn:#D9A05B;
+  --warn-soft:#2E2417;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  font-size:16.5px;
+  line-height:1.62;
+  margin:0;
+  padding:0 1.25rem 6rem;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:52rem;margin:0 auto}
+.measure{max-width:38rem}
+
+/* ---------- masthead ---------- */
+header.mast{
+  padding:4.5rem 0 2.25rem;
+  border-bottom:1px solid var(--rule);
+  margin-bottom:3rem;
+}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 1rem;
+}
+h1{
+  font-family:Spectral,Georgia,serif;
+  font-weight:600;font-size:clamp(2.1rem,5vw,3.1rem);
+  line-height:1.1;margin:0 0 1rem;text-wrap:balance;letter-spacing:-.015em;
+}
+.standfirst{
+  font-family:Spectral,Georgia,serif;
+  font-size:1.16rem;line-height:1.6;color:var(--muted);
+  max-width:34rem;margin:0;
+}
+.meta{
+  display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin-top:1.75rem;
+  font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--faint);
+}
+
+/* ---------- sections ---------- */
+section{margin:0 0 3.5rem}
+h2{
+  font-family:Spectral,Georgia,serif;font-weight:600;
+  font-size:1.62rem;line-height:1.25;margin:0 0 .35rem;
+  letter-spacing:-.01em;text-wrap:balance;
+}
+h2 .num{
+  font-family:"IBM Plex Mono",monospace;font-size:.78rem;font-weight:500;
+  color:var(--accent);display:block;margin-bottom:.45rem;letter-spacing:.1em;
+}
+h3{
+  font-family:"IBM Plex Sans",sans-serif;font-weight:600;font-size:1rem;
+  margin:2.25rem 0 .5rem;letter-spacing:-.005em;
+}
+p{margin:0 0 1.05rem;max-width:38rem}
+.lede{color:var(--muted);margin-bottom:1.75rem;max-width:38rem}
+a{color:var(--accent)}
+
+/* ---------- equations ---------- */
+.eq{
+  background:var(--surface);border:1px solid var(--rule);
+  border-left:3px solid var(--accent);
+  border-radius:3px;padding:1.15rem 1.35rem;margin:1.5rem 0;
+  font-family:"IBM Plex Mono",monospace;font-size:.92rem;line-height:1.85;
+  overflow-x:auto;box-shadow:var(--shadow);
+}
+.eq .lbl{
+  display:block;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:.7rem;
+}
+.eq em{font-family:Spectral,Georgia,serif;font-style:italic;font-size:1.05em}
+.eq .cm{color:var(--faint);font-size:.85em}
+sub,sup{font-size:.68em;line-height:0}
+
+/* ---------- callouts ---------- */
+.note{
+  border-radius:3px;padding:1rem 1.2rem;margin:1.5rem 0;
+  font-size:.93rem;border:1px solid var(--rule);background:var(--surface-2);
+}
+.note.key{background:var(--accent-soft);border-color:transparent}
+.note.ok{background:var(--ok-soft);border-color:transparent}
+.note.warn{background:var(--warn-soft);border-color:transparent}
+.note b{font-weight:600}
+.note p{margin:0;max-width:none}
+.note p+p{margin-top:.6rem}
+.note .tag{
+  font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.12em;
+  text-transform:uppercase;display:block;margin-bottom:.45rem;
+}
+.note.key .tag{color:var(--accent)}
+.note.ok .tag{color:var(--ok)}
+.note.warn .tag{color:var(--warn)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:1.5rem 0;border:1px solid var(--rule);border-radius:3px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:.62rem .85rem;text-align:left;border-bottom:1px solid var(--rule)}
+th{
+  font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--faint);font-weight:500;
+  background:var(--surface-2);white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{
+  display:inline-block;padding:.12rem .5rem;border-radius:2px;
+  font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:500;
+}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+
+/* ---------- stat strip ---------- */
+.stats{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:3px;overflow:hidden;margin:1.75rem 0;
+}
+.stat{background:var(--surface);padding:1.05rem 1.1rem}
+.stat .v{
+  font-family:"IBM Plex Mono",monospace;font-size:1.42rem;font-weight:500;
+  color:var(--accent);display:block;line-height:1.15;font-variant-numeric:tabular-nums;
+}
+.stat .k{font-size:.74rem;color:var(--muted);display:block;margin-top:.35rem;line-height:1.35}
+
+ul,ol{max-width:38rem;padding-left:1.15rem;margin:0 0 1.05rem}
+li{margin-bottom:.45rem}
+code{
+  font-family:"IBM Plex Mono",monospace;font-size:.87em;
+  background:var(--surface-2);padding:.1em .35em;border-radius:2px;
+}
+hr{border:none;border-top:1px solid var(--rule);margin:3.5rem 0}
+footer{
+  border-top:1px solid var(--rule);padding-top:1.5rem;margin-top:1rem;
+  font-size:.82rem;color:var(--faint);
+}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow">FLOATS · electrostatic trap</p>
+  <h1>Closed-form capacitance of the trap electrodes</h1>
+  <p class="standfirst">Every electrode in the device — square actuation pairs, hollow-square central electrodes, triangular sensing plates — reduces to one integral. This derives it, verifies it against quadrature, and calibrates it against COMSOL.</p>
+  <div class="meta">
+    <span>Derivation + numerical fit</span>
+    <span>6&#8209;DOF pose dependence</span>
+    <span>Verified to 1.7&#215;10<sup>&#8722;11</sup></span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="num">SUMMARY</span>What came out of it</h2>
+  <p class="lede">The headline is not the fit quality — it is that geometry alone, with nothing fitted, reproduces quantities that were previously only measured.</p>
+
+  <div class="stats">
+    <div class="stat"><span class="v">0.70%</span><span class="k">Central A/B area ratio vs. measured force&#8209;law ratio</span></div>
+    <div class="stat"><span class="v">0.10%</span><span class="k">Quadrant lever arm vs. blind torque fit</span></div>
+    <div class="stat"><span class="v">0.09%</span><span class="k">Sensing capacitance <em>C</em><sub>1R</sub> vs. COMSOL</span></div>
+    <div class="stat"><span class="v">0.9598</span><span class="k">Held&#8209;out <em>R</em><sup>2</sup> for <em>C</em><sub>eff</sub>, 300 poses</span></div>
+  </div>
+
+  <div class="note key">
+    <span class="tag">Resolved along the way</span>
+    <p>Two long-standing puzzles closed themselves once the geometry was in hand. The two central-electrode datasets differed by a factor of 3.567, previously attributed to a voltage discrepancy — it is the <b>area ratio</b> of electrodes A and B (3.5420), so <b>A is the outer, B is the inner</b>, and the drive voltage was identical throughout.</p>
+    <p>Separately, the nominal gap is <b>15.454&nbsp;µm, not the assumed 15.000&nbsp;µm</b>. That 3% error alone was capping the geometric capacitance model at <em>R</em><sup>2</sup>&nbsp;=&nbsp;0.90; correcting it takes the same model to 1.0000.</p>
+  </div>
+
+  <h3>Notation</h3>
+  <p>Two symbols are easy to confuse and are listed first. Lengths are metres unless stated.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Symbol</th><th>Meaning</th><th class="n">Units</th></tr></thead>
+    <tbody>
+      <tr><td class="n"><em>u</em></td><td><b>Local gap along an electrode edge</b> — the argument of <em>h</em>. Equals <em>g</em>(<em>x</em><sub>E</sub>(<em>y</em>),&nbsp;<em>y</em>). Positive for any non-contacting pose.</td><td class="n">m</td></tr>
+      <tr><td class="n"><em>s</em><sub>i</sub></td><td><b>Fraction of the gap consumed by tilt</b> at edge <em>i</em>, = <em>y</em><sub>i</sub><em>θ</em>&#8725;<em>g</em>. Used only in the force section. <em>s</em>&nbsp;&#8594;&nbsp;1 is contact.</td><td class="n">&#8211;</td></tr>
+      <tr><td class="n"><em>g</em>(<em>x</em>,<em>y</em>)</td><td>Local gap between plate and electrode at a point</td><td class="n">m</td></tr>
+      <tr><td class="n"><em>G</em></td><td>Gap at the plate centre, = <em>g</em><sub>z</sub> &#8722; <em>a</em><sub>5</sub><em>rz</em></td><td class="n">m</td></tr>
+      <tr><td class="n"><em>g</em><sub>z</sub>, <em>a</em><sub>5</sub></td><td>Nominal gap (15.454&nbsp;µm) and its scaling on <em>rz</em> (1.0032)</td><td class="n">m, &#8211;</td></tr>
+      <tr><td class="n"><em>rz</em>, <em>θ</em><sub>x</sub>, <em>θ</em><sub>y</sub></td><td>Plate vertical displacement and the two tilts</td><td class="n">m, rad</td></tr>
+      <tr><td class="n"><em>h</em>(<em>u</em>)</td><td>The primitive, <em>u</em>&#8201;(ln&#8201;<em>u</em>&nbsp;&#8722;&nbsp;1)</td><td class="n">m</td></tr>
+      <tr><td class="n"><em>p</em><sub>E</sub>, <em>q</em><sub>E</sub></td><td>Intercept and slope of edge <em>E</em>: <em>x</em><sub>E</sub>(<em>y</em>)&nbsp;=&nbsp;<em>p</em><sub>E</sub>&nbsp;+&nbsp;<em>q</em><sub>E</sub><em>y</em>. Subscript L/R = left/right edge.</td><td class="n">m, &#8211;</td></tr>
+      <tr><td class="n"><em>A</em><sub>E</sub>, <em>B</em><sub>E</sub></td><td>Bookkeeping shorthands so that <em>u</em>&nbsp;=&nbsp;<em>A</em><sub>E</sub>&nbsp;+&nbsp;<em>B</em><sub>E</sub><em>y</em> along edge <em>E</em></td><td class="n">m, &#8211;</td></tr>
+      <tr><td class="n"><em>y</em><sub>a</sub>, <em>y</em><sub>b</sub></td><td>Limits of the <em>y</em>-sweep defining a region</td><td class="n">m</td></tr>
+      <tr><td class="n"><em>y</em><sub>1</sub>, <em>y</em><sub>2</sub></td><td>Near- and far-edge positions of an offset electrode (force section)</td><td class="n">m</td></tr>
+      <tr><td class="n"><em>α</em></td><td>Fringing enhancement over the bare parallel-plate integral (1.0838)</td><td class="n">&#8211;</td></tr>
+      <tr><td class="n"><em>b</em></td><td>Effective half-width of a shape, <em>b</em><sup>2</sup>&nbsp;=&nbsp;3<em>I</em><sub>yy</sub>&#8725;<em>A</em></td><td class="n">m</td></tr>
+      <tr><td class="n"><em>C</em><sub>iR</sub></td><td>Capacitance from electrode <em>i</em> to the proof mass (R = resonator)</td><td class="n">F</td></tr>
+      <tr><td class="n"><em>S</em><sub>R</sub></td><td>Total capacitance at the floating proof-mass node</td><td class="n">F</td></tr>
+      <tr><td class="n"><em>C</em><sub>par</sub>, <em>C</em><sub>g</sub>, <em>C</em><sub>12</sub></td><td>The three fitted constants: proof-mass parasitic, sense-to-shield, direct coplanar 1&#8211;2</td><td class="n">F</td></tr>
+      <tr><td class="n"><em>C</em><sub>eff</sub></td><td>Two-port capacitance measured between terminals 1 and 2</td><td class="n">F</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <h2><span class="num">1</span>The one integral behind everything</h2>
+  <p>A conducting plate sits above a fixed electrode at height <em>rz</em>, tilted by small angles <em>θ</em><sub>x</sub> and <em>θ</em><sub>y</sub>. The local gap over a point on the electrode is linear in position:</p>
+
+  <div class="eq">
+    <span class="lbl">Local gap</span>
+    <em>g</em>(<em>x</em>,<em>y</em>) = <em>G</em> &#8722; <em>y</em>&#8201;<em>θ</em><sub>x</sub> + <em>x</em>&#8201;<em>θ</em><sub>y</sub> &nbsp;&nbsp;<span class="cm">with</span>&nbsp;&nbsp; <em>G</em> = <em>g</em><sub>z</sub> &#8722; <em>a</em><sub>5</sub>&#8201;<em>rz</em>
+  </div>
+
+  <p>Capacitance accumulates as <em>ε</em>&#8201;d<em>A</em>&#8201;/&#8201;<em>g</em>. This is the key structural difference from the force problem: electrostatic pressure goes as 1/<em>g</em><sup>2</sup> and yields rational integrals, whereas capacitance goes as 1/<em>g</em> and yields <b>logarithmic</b> ones.</p>
+
+  <p>Every footprint in this device — rectangle, hollow square, right triangle — is a region swept in <em>y</em> between two straight edges that are linear in <em>y</em>. Writing those edges as <em>x</em><sub>L</sub>(<em>y</em>)&nbsp;=&nbsp;<em>p</em><sub>L</sub>&nbsp;+&nbsp;<em>q</em><sub>L</sub><em>y</em> and <em>x</em><sub>R</sub>(<em>y</em>)&nbsp;=&nbsp;<em>p</em><sub>R</sub>&nbsp;+&nbsp;<em>q</em><sub>R</sub><em>y</em>, the double integral closes in terms of a single primitive:</p>
+
+  <div class="eq">
+    <span class="lbl">Master result</span>
+    <em>h</em>(<em>u</em>) = <em>u</em>&#8201;(ln&#8201;<em>u</em> &#8722; 1) &nbsp;&nbsp;<span class="cm">// <em>u</em> is a LOCAL GAP, in metres</span><br><br>
+    <em>A</em><sub>E</sub> = <em>G</em> + <em>p</em><sub>E</sub><em>θ</em><sub>y</sub> &nbsp;&nbsp;&nbsp; <em>B</em><sub>E</sub> = <em>q</em><sub>E</sub><em>θ</em><sub>y</sub> &#8722; <em>θ</em><sub>x</sub><br><br>
+    <em>C</em> = (<em>ε</em>&#8201;/&#8201;<em>θ</em><sub>y</sub>)&#8201;&#91;&#8201;<em>B</em><sub>R</sub><sup>&#8722;1</sup><em>h</em>(<em>A</em><sub>R</sub>+<em>B</em><sub>R</sub><em>y</em>) &#8722; <em>B</em><sub>L</sub><sup>&#8722;1</sup><em>h</em>(<em>A</em><sub>L</sub>+<em>B</em><sub>L</sub><em>y</em>)&#8201;&#93;<sub>&#8201;<em>y</em><sub>a</sub></sub><sup>&#8201;<em>y</em><sub>b</sub></sup>
+  </div>
+
+  <p>The <em>x</em>-integral contributes ln&#8201;<em>u</em>; integrating that again in <em>y</em> gives <em>h</em>. Rectangles are the case <em>q</em><sub>L</sub>&nbsp;=&nbsp;<em>q</em><sub>R</sub>&nbsp;=&nbsp;0; right triangles have one sloped edge with <em>q</em>&nbsp;=&nbsp;&#177;1. Hollow shapes are signed sums.</p>
+
+  <p>It is worth being explicit about what <em>u</em> is, since it is the only symbol here that carries physical meaning rather than bookkeeping. It is the <b>local gap along an edge</b>: substituting the edge <em>x</em><sub>E</sub>(<em>y</em>)&nbsp;=&nbsp;<em>p</em><sub>E</sub>&nbsp;+&nbsp;<em>q</em><sub>E</sub><em>y</em> into the gap expression gives</p>
+
+  <div class="eq">
+    <span class="lbl">What <em>u</em> means</span>
+    <em>u</em> = <em>A</em><sub>E</sub> + <em>B</em><sub>E</sub><em>y</em> = <em>G</em> &#8722; <em>y θ</em><sub>x</sub> + (<em>p</em><sub>E</sub> + <em>q</em><sub>E</sub><em>y</em>)<em>θ</em><sub>y</sub> = <em>g</em>&#8201;(<em>x</em><sub>E</sub>(<em>y</em>),&nbsp;<em>y</em>)
+  </div>
+
+  <p>So <em>h</em> is only ever evaluated at a physical gap, and <em>u</em>&nbsp;&gt;&nbsp;0 is precisely the condition that the plate does not touch the electrode — which is why the logarithm never has a negative argument for any valid pose.</p>
+
+  <h3>Degenerate limits</h3>
+  <p>Two limits need care, because the closed form is a small difference of large terms there. As <em>θ</em><sub>y</sub>&#8201;&#8594;&#8201;0 the gap stops depending on <em>x</em> and the <em>x</em>-integral becomes algebraic; as <em>B</em>&#8201;&#8594;&#8201;0 the prefactor and the bracket diverge together while the product stays finite. Both are handled by explicit series rather than by letting the formula cancel:</p>
+
+  <div class="eq">
+    <span class="lbl">Series branch, <em>B</em> &#8594; 0</span>
+    &#8747;&#8201;ln(<em>A</em>+<em>By</em>)&#8201;d<em>y</em> &#8776; (<em>y</em><sub>b</sub>&#8722;<em>y</em><sub>a</sub>)&#8201;ln&#8201;<em>A</em> + <em>B</em>&#8201;(<em>y</em><sub>b</sub><sup>2</sup>&#8722;<em>y</em><sub>a</sub><sup>2</sup>)&#8201;/&#8201;2<em>A</em> &#8722; <em>B</em><sup>2</sup>(<em>y</em><sub>b</sub><sup>3</sup>&#8722;<em>y</em><sub>a</sub><sup>3</sup>)&#8201;/&#8201;6<em>A</em><sup>2</sup>
+  </div>
+
+  <div class="note ok">
+    <span class="tag">Verified</span>
+    <p>Checked against 2-D quadrature across every branch — generic tilt, <em>θ</em><sub>y</sub>&#8594;0, <em>θ</em><sub>x</sub>&#8594;0, both&#8594;0, tight gaps, rectangles and triangles. <b>Worst relative error 1.7&#215;10<sup>&#8722;11</sup></b>.</p>
+    <p>Worth noting how the first version of that check failed: <code>integral2</code> takes its first argument as the <i>outer</i> variable, so the region was handed over transposed. At zero tilt the integrand is symmetric in <em>x</em> and <em>y</em>, so those rows passed while every tilted row failed — a pattern that pointed at the test, not the formula.</p>
+  </div>
+
+  <div class="note warn">
+    <span class="tag">Why the exact form is needed</span>
+    <p>The perturbation parameter is <em>y&#8201;θ</em><sub>x</sub>&#8201;/&#8201;<em>g</em> &#8776; <b>0.22</b> at full tilt. Tilt is not a small correction here, and a linearised effective-gap model cannot represent it faithfully — at maximum tilt the exact capacitance is 13.2% above the flat-plate value.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <h2><span class="num">2</span>Decoding the footprints</h2>
+  <p class="lede">Each electrode becomes a short signed list of swept regions. Coordinates are plate-centred; the proof mass is 5950&nbsp;µm square.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Electrode</th><th>Decomposition</th><th class="n">Area&nbsp;(µm²)</th></tr></thead>
+    <tbody>
+      <tr><td>Actuation, quadrant&nbsp;1</td><td>Two 1450&nbsp;µm squares at (2250,&nbsp;750) and (750,&nbsp;2250)</td><td class="n">4&#8201;205&#8201;000</td></tr>
+      <tr><td>Sensing <em>Cm</em><sub>1p</sub></td><td>Right triangle; sweep <em>y</em> 1525&#8594;2940, <em>x</em><sub>L</sub>=<em>y</em>+35, <em>x</em><sub>R</sub>=2975</td><td class="n">1&#8201;001&#8201;113</td></tr>
+      <tr><td>Sensing <em>Cm</em><sub>2p</sub></td><td>Mirror of <em>Cm</em><sub>1p</sub> across <em>x</em>=<em>y</em></td><td class="n">1&#8201;001&#8201;112</td></tr>
+      <tr><td>Central&nbsp;A (outer), +<em>x</em> half</td><td>rect&#8201;[75,1475]&#215;[&#8722;1475,1475] &#8722; rect&#8201;[75,737]&#215;[&#8722;725,725]</td><td class="n">3&#8201;170&#8201;100</td></tr>
+      <tr><td>Central&nbsp;B (inner), &#8722;<em>y</em> half</td><td>rect&#8201;[&#8722;700,700]&#215;[&#8722;675,&#8722;25] &#8722; notch&#8201;[&#8722;100,100]&#215;[&#8722;100,&#8722;25]</td><td class="n">895&#8201;000</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Pair A is mirror-symmetric about the <em>y</em>-axis, pair B about the <em>x</em>-axis. B nests inside A's hollow, which is what makes A the outer electrode and B the inner one.</p>
+
+  <h3>Geometry as an independent check</h3>
+  <p>Three quantities had already been measured by fitting simulation data, with no geometric input whatsoever. Pure geometry reproduces all three:</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Quantity</th><th class="n">From geometry</th><th class="n">From blind fit</th><th class="n">Agreement</th></tr></thead>
+    <tbody>
+      <tr><td>Central A&#8201;/&#8201;B area ratio</td><td class="n">3.5420</td><td class="n">3.5670</td><td class="n"><span class="pill ok">0.70%</span></td></tr>
+      <tr><td>Quadrant lever arm</td><td class="n">1500.0&nbsp;µm</td><td class="n">1498.5&nbsp;µm</td><td class="n"><span class="pill ok">0.10%</span></td></tr>
+      <tr><td>Central A half-width <em>b</em></td><td class="n">1635.6&nbsp;µm</td><td class="n">1568.8&nbsp;µm</td><td class="n"><span class="pill ok">4.1%</span></td></tr>
+      <tr><td>Sensing triangle mirror pair</td><td class="n">1&#8201;001&#8201;113</td><td class="n">1&#8201;001&#8201;112</td><td class="n"><span class="pill ok">10<sup>&#8722;14</sup></span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>The half-width comparison uses <em>b</em><sup>2</sup>&nbsp;=&nbsp;3&#8201;<em>I</em><sub>yy</sub>&#8201;/&#8201;<em>A</em>, which is what the second-order expansion of the force law implies a shape's tilt coefficient must be. Geometry also says electrode B is nearly isotropic (<em>b</em><sub>y</sub>&nbsp;=&nbsp;693&nbsp;µm vs. <em>b</em><sub>x</sub>&nbsp;=&nbsp;706&nbsp;µm), confirming that the lopsided 488&#8201;/&#8201;191&nbsp;µm split seen in its fit was conditioning noise rather than shape.</p>
+</section>
+
+<hr>
+
+<section>
+  <h2><span class="num">3</span>The floating proof mass</h2>
+  <p class="lede">This is the part that makes the sensing problem interesting. Terminals 1 and 2 are coplanar triangles — they barely see each other directly. Their coupling runs through the proof mass, which is deliberately left floating.</p>
+
+  <p>Because the actuation electrodes are driven as differential pairs, the proof mass sits at a near-zero potential but is not tied to any node. Eliminating a floating node from a capacitance network is a star-to-mesh transform. The total capacitance presented at that node — the <b>resonator capacitance</b> — governs how much signal survives the trip:</p>
+
+  <div class="eq">
+    <span class="lbl">Resonator node total</span>
+    <em>S</em><sub>R</sub> = &#8721;<sub>&#8201;i</sub> <em>C</em><sub>iR</sub> + <em>C</em><sub>par</sub>
+    <span class="cm">&nbsp;&nbsp;// 20 electrodes + suspension/shield parasitic</span>
+  </div>
+
+  <p>The sum runs over every conductor facing the plate: 8 actuation squares, 8 sensing triangles, 2 central-A halves, 2 central-B halves. All twenty come from the closed form. Only <em>C</em><sub>par</sub> — the suspension and shield — cannot be had from a footprint integral.</p>
+
+  <div class="eq">
+    <span class="lbl">Star-to-mesh elimination, then the two-port</span>
+    <em>C</em><sub>M</sub> = <em>C</em><sub>12</sub> + <em>C</em><sub>1R</sub><em>C</em><sub>2R</sub>&#8201;/&#8201;<em>S</em><sub>R</sub><br>
+    <em>C</em><sub>1</sub> = <em>S</em><sub>1</sub> &#8722; <em>C</em><sub>12</sub> &#8722; <em>C</em><sub>1R</sub>(<em>C</em><sub>1R</sub>+<em>C</em><sub>2R</sub>)&#8201;/&#8201;<em>S</em><sub>R</sub><br>
+    <em>C</em><sub>2</sub> = <em>S</em><sub>2</sub> &#8722; <em>C</em><sub>12</sub> &#8722; <em>C</em><sub>2R</sub>(<em>C</em><sub>1R</sub>+<em>C</em><sub>2R</sub>)&#8201;/&#8201;<em>S</em><sub>R</sub><br><br>
+    <em>C</em><sub>eff</sub> = <em>C</em><sub>M</sub> + <em>C</em><sub>1</sub><em>C</em><sub>2</sub>&#8201;/&#8201;(<em>C</em><sub>1</sub>+<em>C</em><sub>2</sub>)
+  </div>
+
+  <p>The final term is easy to drop and expensive to omit: the measured two-port capacitance includes the series combination of each terminal's remaining path to ground, not just the through-path.</p>
+
+  <div class="note warn">
+    <span class="tag">A diagnostic worth keeping</span>
+    <p>An earlier version left that series term out and let a fringing factor <em>α</em> float. The fit returned <b><em>α</em>&nbsp;=&nbsp;10.9</b> at <em>R</em><sup>2</sup>&nbsp;=&nbsp;0.99 — an excellent fit to a physically impossible parameter, since a fringing enhancement cannot exceed ~1.3. The independent zero-parameter check on <em>C</em><sub>1R</sub> flatly contradicted it. A fitted parameter straying far outside its physical range is a structural error in the model, not a calibration.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <h2><span class="num">4</span>Calibration against COMSOL</h2>
+  <p class="lede">Terminal identities were established by correlating each Maxwell-matrix entry against the analytic curves, so the assignment is an identification rather than an assumption.</p>
+
+  <p>Terminal 21 is the proof mass — its off-diagonal sum is 5.3&#215;10<sup>&#8722;11</sup>&nbsp;F, twenty times any electrode. Terminals 1 and 2 are the quadrant-1 sensing triangles (correlation 0.9975), 3/4/7/8/11/12/15/16 the actuation squares, 17/18 the central-A halves and 19/20 the central-B halves.</p>
+
+  <h3>Fitting the gap, on one clean quantity</h3>
+  <p><em>C</em><sub>1R</sub> is a single uncontaminated matrix entry, which makes it the right place to calibrate. Adding freedom one step at a time:</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Model</th><th>Free parameters</th><th class="n"><em>R</em><sup>2</sup></th></tr></thead>
+    <tbody>
+      <tr><td>M0 &nbsp;bare geometry, <em>G</em> = 15&nbsp;µm &#8722; <em>rz</em></td><td class="n">0</td><td class="n">0.8975</td></tr>
+      <tr><td>M1 &nbsp;+ scale <em>α</em></td><td class="n">1</td><td class="n">0.9639</td></tr>
+      <tr><td>M2 &nbsp;+ gap offset and scale</td><td class="n">3</td><td class="n"><span class="pill ok">1.0000</span></td></tr>
+      <tr><td>M3 &nbsp;+ perimeter fringing term</td><td class="n">4</td><td class="n">1.0000</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>M2 recovers <em>g</em><sub>z</sub>&nbsp;=&nbsp;<b>15.454&nbsp;µm</b>, <em>a</em><sub>5</sub>&nbsp;=&nbsp;<b>1.0032</b> and <em>α</em>&nbsp;=&nbsp;<b>1.0838</b>. Two of those are strong evidence rather than free knobs: <em>a</em><sub>5</sub> is required by the derivation to be exactly 1 and comes back within 0.3%, and <em>α</em> is an 8.4% fringing enhancement, right where a perimeter argument puts it. The explicit fringing term in M3 buys nothing further, contributing only 1.1% of <em>C</em><sub>1R</sub>.</p>
+
+  <p>The real finding is <em>g</em><sub>z</sub>. The assumed 15.000&nbsp;µm was wrong by 3%, and that single number was what held the geometric model at 0.90.</p>
+
+  <h3>Assembled <em>C</em><sub>eff</sub></h3>
+  <p>With the gap calibrated on <em>C</em><sub>1R</sub> and applied to all twenty electrodes, only three genuinely non-geometric constants remain to be fitted:</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Constant</th><th>Meaning</th><th class="n">Fitted</th></tr></thead>
+    <tbody>
+      <tr><td><em>C</em><sub>par</sub></td><td>Proof-mass parasitic to suspension/shield</td><td class="n">1.910&#215;10<sup>&#8722;11</sup>&nbsp;F</td></tr>
+      <tr><td><em>C</em><sub>g</sub></td><td>Sensing electrode to fixed shield</td><td class="n">1.885&#215;10<sup>&#8722;13</sup>&nbsp;F</td></tr>
+      <tr><td><em>C</em><sub>12</sub></td><td>Direct coplanar coupling, 1&#8211;2</td><td class="n">&#8776;&nbsp;0</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p><em>C</em><sub>par</sub> is 43% of the resonator node total — a large share, and a reminder that the suspension dominates the signal division as much as the electrodes do. <em>C</em><sub>12</sub> collapsing to zero is physically right: with the plate only 15&nbsp;µm away, the through-path overwhelms any direct coplanar coupling.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Dataset</th><th>Role</th><th class="n">n</th><th class="n"><em>R</em><sup>2</sup></th></tr></thead>
+    <tbody>
+      <tr><td><em>C</em><sub>1R</sub>, sensing-to-plate</td><td>Zero-parameter geometry check</td><td class="n">60</td><td class="n"><span class="pill ok">1.0000</span></td></tr>
+      <tr><td>Dedicated sensing sweep</td><td>In-sample</td><td class="n">60</td><td class="n">0.9773</td></tr>
+      <tr><td>Scattered LHS set</td><td><b>Held out</b></td><td class="n">300</td><td class="n"><span class="pill ok">0.9598</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Mean <em>C</em><sub>1R</sub> lands within <b>0.09%</b> of COMSOL with the gap calibration and nothing else — the pose dependence is carried entirely by the closed form.</p>
+</section>
+
+<hr>
+
+<section>
+  <h2><span class="num">5</span>The same method on the force model</h2>
+  <p class="lede">Capacitance integrates 1/<em>g</em>; electrostatic pressure integrates 1/<em>g</em><sup>2</sup>. The same decomposition applies, and it sharpens the existing quadrant actuation model considerably.</p>
+
+  <p>For an offset rectangle spanning <em>y</em>&nbsp;&#8712;&nbsp;[<em>y</em><sub>1</sub>,&nbsp;<em>y</em><sub>2</sub>], integrating the pressure gives the product of the near-edge and far-edge gaps — not one lumped effective gap squared:</p>
+
+  <div class="eq">
+    <span class="lbl">Offset electrode, exact</span>
+    <em>F</em><sub>z</sub> = <em>k V</em><sup>2</sup> &#8725; &#91;&#8201;(<em>g</em> &#8722; <em>y</em><sub>1</sub><em>θ</em>)(<em>g</em> &#8722; <em>y</em><sub>2</sub><em>θ</em>)&#8201;&#93;<br><br>
+    <em>τ</em> = <em>k V</em><sup>2</sup> <em>f</em>(<em>s</em><sub>1</sub>,<em>s</em><sub>2</sub>) &#8725; (<em>θ g</em>) &nbsp;&nbsp;<span class="cm">// <em>s</em><sub>i</sub> = <em>y</em><sub>i</sub><em>θ</em>&#8725;<em>g</em>, DIMENSIONLESS</span><br>
+    <em>f</em> = &#91;(1&#8722;<em>s</em><sub>1</sub>)(1&#8722;<em>s</em><sub>2</sub>)&#93;<sup>&#8722;1</sup> + ln&#8201;&#91;(1&#8722;<em>s</em><sub>2</sub>)&#8725;(1&#8722;<em>s</em><sub>1</sub>)&#93; &#8725; (<em>s</em><sub>2</sub>&#8722;<em>s</em><sub>1</sub>)
+  </div>
+
+  <p><em>s</em><sub>i</sub> is deliberately a different letter from the <em>u</em> of section&nbsp;1. Both describe the gap at an electrode edge, but <em>u</em> is that gap in metres while <em>s</em><sub>i</sub> is the <b>fraction</b> of the gap that tilt consumes, so that 1&nbsp;&#8722;&nbsp;<em>s</em><sub>i</sub>&nbsp;=&nbsp;(<em>g</em>&nbsp;&#8722;&nbsp;<em>y</em><sub>i</sub><em>θ</em>)&#8201;/&#8201;<em>g</em> is the normalised edge gap. <em>s</em><sub>i</sub>&nbsp;&#8594;&nbsp;1 is contact; the 0.22 quoted earlier as the perturbation parameter is exactly this quantity at full tilt.</p>
+
+  <p>The torque expression contains <b>no new parameters</b>: <em>k</em>, <em>y</em><sub>1</sub> and <em>y</em><sub>2</sub> are all pinned down by the force fit. Torque is therefore a prediction, not a fit — so agreement is validation.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Block</th><th class="n">Derived form</th><th class="n">Empirical model</th></tr></thead>
+    <tbody>
+      <tr><td><em>F</em><sub>z</sub>, <em>θ</em><sub>x</sub>-only</td><td class="n"><span class="pill ok">0.99998</span></td><td class="n">0.99309</td></tr>
+      <tr><td><em>F</em><sub>z</sub>, <em>θ</em><sub>y</sub>-only</td><td class="n"><span class="pill ok">0.99998</span></td><td class="n">0.99309</td></tr>
+      <tr><td><em>τ</em><sub>x</sub>, <em>θ</em><sub>x</sub>-only</td><td class="n"><span class="pill ok">0.99873</span></td><td class="n">0.93457</td></tr>
+      <tr><td><em>τ</em><sub>y</sub>, <em>θ</em><sub>y</sub>-only</td><td class="n"><span class="pill ok">0.99860</span></td><td class="n">0.93451</td></tr>
+      <tr><td>Free torque parameters</td><td class="n"><b>0</b></td><td class="n">4</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>The small-angle limit of <em>f</em> is (<em>s</em><sub>1</sub>+<em>s</em><sub>2</sub>)&#8201;/&#8201;2, giving <em>τ</em>&nbsp;&#8594;&nbsp;<em>F</em><sub>z</sub>&#8201;(<em>y</em><sub>1</sub>+<em>y</em><sub>2</sub>)&#8201;/&#8201;2 — the lever arm is the electrode centroid. That is what the old four-coefficient moment-arm polynomial had been approximating, and it explains what its leading coefficient physically was.</p>
+</section>
+
+<hr>
+
+<section>
+  <h2><span class="num">6</span>Status and what is still open</h2>
+
+  <h3>Settled</h3>
+  <ul>
+    <li>The closed form is exact — verified to 1.7&#215;10<sup>&#8722;11</sup> against quadrature on every branch.</li>
+    <li>Geometry independently reproduces three previously-fitted quantities to 0.70%, 0.10% and 10<sup>&#8722;14</sup>.</li>
+    <li>Central electrode A is the outer, B the inner; their 3.567&#215; difference is area, not voltage.</li>
+    <li>The nominal gap is 15.454&nbsp;µm.</li>
+    <li>Quadrant torque is predicted with zero free parameters at <em>R</em><sup>2</sup>&nbsp;&gt;&nbsp;0.998.</li>
+  </ul>
+
+  <h3>Open</h3>
+  <ul>
+    <li><b><em>C</em><sub>eff</sub> sits at 0.96 held-out, against 1.0000 for its dominant input.</b> The loss is in assembly, not in the geometry — most likely the shield-coupling terms <em>S</em><sub>1</sub>, <em>S</em><sub>2</sub>, currently single constants. Shield geometry would let them be derived too.</li>
+    <li><b>In-plane degrees of freedom are untested.</b> <em>rx</em>, <em>ry</em> and <em>θ</em><sub>z</sub> are identically zero throughout the dedicated sweep, so their residual correlations are undefined. They were previously argued negligible; that argument has not actually been tested against data.</li>
+    <li><b>Corner rounding.</b> The derivation assumes straight edges. Any chamfer or fillet in the real layout would appear as a small systematic residual.</li>
+    <li><b>Central electrode B's torque</b> still lacks a clean fit; its sweep varied <em>rz</em>, which dominates <em>F</em><sub>z</sub> and leaves the tilt term as a poorly-conditioned residual.</li>
+  </ul>
+
+  <div class="note key">
+    <span class="tag">Recommendation</span>
+    <p>The highest-value next input is the <b>shield and suspension geometry</b>. <em>C</em><sub>par</sub> is 43% of the resonator node and is currently the single largest fitted quantity in the model; deriving it the way the electrodes were derived would close most of the remaining gap in <em>C</em><sub>eff</sub>.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Derivations implemented in <code>capTrapz.m</code>, <code>trapGeometry.m</code>, <code>shapeCap.m</code>. Verification in <code>verifyCapPrimitive.m</code> and <code>verifyTrapGeometry.m</code>. Fits in <code>refineC1RGapModel.m</code>, <code>fitCeffAnalytic.m</code>, <code>fitQuadrantElectrodeExact.m</code>. Permittivity <em>ε</em><sub>0</sub> = 8.8541878128&#215;10<sup>&#8722;12</sup>&nbsp;F&#8201;m<sup>&#8722;1</sup>; drive 30&nbsp;V.</p>
+</footer>
+
+</div>

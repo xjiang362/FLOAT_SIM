@@ -1,0 +1,3 @@
+thx 0 [rad]
+thy 0 [rad]
+thz 0 [rad]
