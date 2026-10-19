@@ -82,12 +82,12 @@ Current design point (defaults in `trapDeviceGeometry.m` and
 
 | parameter | value |
 |---|---|
-| `Tisr` | 500 µs |
+| `Tisr` | 700 µs |
 | `dtChannel` | 125 µs |
 | `tI2C` | 500 µs |
 | `dtEuler` | 10 µs |
-| `lambdar` | 200 Hz |
-| `lambdae` | 500 Hz |
+| `lambdar` | 100 Hz |
+| `lambdae` | 300 Hz |
 
 ---
 
