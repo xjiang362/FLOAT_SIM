@@ -51,16 +51,16 @@
     $a$ & actuation-pair moment arm & 1500 & \si{\micro\metre} \\
     \midrule
     \multicolumn{4}{l}{\textit{Timing}} \\
-    $T_{\mathrm{ISR}}$ & controller interrupt period & 500 & \si{\micro\second} \\
+    $T_{\mathrm{ISR}}$ & controller interrupt period & 700 & \si{\micro\second} \\
     $\Delta t_{\mathrm{ch}}$ & inter-channel conversion spacing & 125 & \si{\micro\second} \\
     $t_{\mathrm{I2C}}$ & bus transfer after the last conversion & 500 & \si{\micro\second} \\
     $t_{d}$ & oldest-channel staleness, $t_{\mathrm{I2C}}+3.5\Delta t_{\mathrm{ch}}$ & 937.5 & \si{\micro\second} \\
     $\Delta t$ & forward-Euler integration step & 10 & \si{\micro\second} \\
     \midrule
     \multicolumn{4}{l}{\textit{Controller}} \\
-    $\lambda_r$ & regulator bandwidth & 200 & \si{\hertz} \\
-    $\lambda_e$ & observer bandwidth & 500 & \si{\hertz} \\
-    $R_{\mathrm{LQR}}$ & LQR control weight (bisected to meet $\lambda_r$) & 0.0364 & -- \\
+    $\lambda_r$ & regulator bandwidth & 100 & \si{\hertz} \\
+    $\lambda_e$ & observer bandwidth & 300 & \si{\hertz} \\
+    $R_{\mathrm{LQR}}$ & LQR control weight (bisected to meet $\lambda_r$) & 0.6083 & -- \\
     $V_{\mathrm{TIA}}$ & fixed bias on the TIA pair & 0 & \si{\volt} \\
     $V_{\max}$ & drive voltage clamp & 80 & \si{\volt} \\
     \midrule
@@ -75,7 +75,7 @@
     $p_{z}$ & heave unstable rate, $\sqrt{2g/g_0}$ & 1144 & \si{\radian\per\second} \\
     $p_{\theta_x}$ & roll unstable rate & 950 & \si{\radian\per\second} \\
     $p_{\theta_y}$ & pitch unstable rate & 998.8 & \si{\radian\per\second} \\
-    $\cosh(p_zT)$ & per-tick velocity growth over one ISR, heave & 1.168 & -- \\
+    $\cosh(p_zT)$ & per-tick velocity growth over one ISR, heave & 1.338 & -- \\
     \bottomrule
   \end{tabular}
 \end{table}

@@ -62,8 +62,8 @@ ip = inputParser;
 % is unstable at every sample rate tested, with or without the estimator;
 % 200 Hz converges from the full heave travel. lambdae = 500 Hz sits at
 % half Nyquist for Tisr = 500 us, which is the practical ceiling.
-ip.addParameter('lambdar', 2*pi*200);
-ip.addParameter('lambdae', 2*pi*500);
+ip.addParameter('lambdar', 2*pi*100);
+ip.addParameter('lambdae', 2*pi*300);
 ip.addParameter('Tisr', plant.readout.Tisr);
 ip.addParameter('ell', []);
 ip.addParameter('Vtia', 0);
