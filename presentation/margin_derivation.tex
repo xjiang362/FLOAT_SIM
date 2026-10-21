@@ -1,0 +1,230 @@
+% Method note: how the gain, phase and delay margins are computed.
+% Companion to presentation/marginStudy.m, which produces every number here.
+% Requires \usepackage{amsmath}, \usepackage{booktabs}, \usepackage{siunitx}.
+
+\section{Stability margins of the levitation loop}
+\label{sec:margins}
+
+\subsection{Why the margins are not a formality}
+
+State-feedback LQR carries guaranteed margins at the plant input: at least
+\SI{6}{\decibel} of gain reduction, unbounded gain increase and \SI{60}{\degree}
+of phase. Two facts remove that guarantee here. First, those bounds are a
+continuous-time result following from the return-difference inequality
+$|1+L(j\omega)|\ge 1$; the discrete-time Riccati equation gives no such
+inequality, so a sampled LQR has no inherited margin. Second, Doyle's 1978
+result is that LQG---the same gain closed through an observer---has no
+guaranteed margin at all. The plant here is open-loop unstable and the loop
+carries a large acquisition delay, so the margins are measured rather than
+assumed.
+
+\subsection{Notation}
+
+All quantities are discrete-time at the controller period
+$T_{\mathrm{ISR}}=\SI{720}{\micro\second}$, written $T$ below.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Symbol & Meaning & Size / unit \\
+\midrule
+$x[k]$     & plant state $[r_z,\dot r_z,\theta_x,\dot\theta_x,\theta_y,\dot\theta_y]^\top$ & $6\times1$, \si{\metre} / \si{\radian} and rates \\
+$u[k]$     & commanded wrench increment $[\delta F_z,\delta\tau_x,\delta\tau_y]^\top$ & $3\times1$, \si{\newton}, \si{\newton\metre} \\
+$y[k]$     & four sensed corner heights & $4\times1$, \si{\metre} \\
+$A_d$      & exact one-tick map, $\operatorname{blkdiag}[1,\sinh(p_jT)/p_j;0,\cosh(p_jT)]$ & $6\times6$, -- \\
+$B_d$      & discrete input map & $6\times3$, \si{\per\kilo\gram} \\
+$C_d$      & pose-to-height map, rows $[1,0,\pm\ell,0,\mp\ell,0]$ & $4\times6$, -- \\
+$K_x,K_i$  & regulator and integrator gains & $3\times6$, $3\times3$ \\
+$L$        & observer gain & $6\times4$ \\
+$C_c$      & controlled-output selector for $(r_z,\theta_x,\theta_y)$ & $3\times6$, -- \\
+$p_j$      & open-loop unstable rate of mode $j$ & \si{\radian\per\second} \\
+$\ell$     & sensing-pair moment arm, \SI{2250}{\micro\metre} & \si{\metre} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Forming the loop transfer function}
+
+The plant is
+\begin{equation}
+  x[k+1]=A_dx[k]+B_du[k],\qquad y[k]=C_dx[k],
+  \qquad G(z)=C_d(zI-A_d)^{-1}B_d .
+\end{equation}
+The controller is an observer with integral action,
+\begin{align}
+  \hat{x}[k+1] &= A_d\hat{x}[k]+B_du[k]+L\bigl(y[k]-C_d\hat{x}[k]\bigr),\\
+  x_I[k+1]     &= x_I[k]+T\bigl(r[k]-C_c\hat{x}[k]\bigr),\\
+  u[k]         &= -K_x\hat{x}[k]-K_ix_I[k].
+\end{align}
+Eliminating $u$ from the observer update and setting the reference $r=0$ (margins
+are a property of the loop, not of the command path) gives a system whose input
+is $y$ and whose output is $u$. With the controller state
+$\xi=[\hat{x}^\top\;x_I^\top]^\top\in\mathbb{R}^{9}$,
+\begin{equation}
+  \xi[k+1]=
+  \underbrace{\begin{bmatrix} A_d-B_dK_x-LC_d & -B_dK_i\\[2pt] -TC_c & I\end{bmatrix}}_{A_K}\xi[k]
+  +\underbrace{\begin{bmatrix}L\\0\end{bmatrix}}_{B_K}y[k],
+  \qquad
+  u[k]=-\underbrace{\begin{bmatrix}K_x & K_i\end{bmatrix}}_{C_K}\xi[k].
+  \label{eq:controller}
+\end{equation}
+The sign is carried explicitly so that $u=-K(z)y$ with
+$K(z)=C_K(zI-A_K)^{-1}B_K$ and the loop closes as negative feedback. Breaking the
+loop at the plant input gives
+\begin{equation}
+  L_{\mathrm{in}}(z)=K(z)\,G(z),
+  \label{eq:loop}
+\end{equation}
+a $3\times3$ transfer matrix with $9+6=15$ states.
+
+\paragraph{Verification before use.} A loop transfer assembled by hand is easy to
+get wrong by a sign or a transposition, and a wrong $L$ still produces
+plausible-looking margins. By the separation principle the closed-loop poles are
+the union of the regulator and observer spectra, so the assembled loop must satisfy
+\begin{equation}
+  \operatorname{eig}\bigl[\text{feedback}(L_{\mathrm{in}},I)\bigr]
+  =\operatorname{eig}(\bar{A}_a-\bar{B}_aK_a)\;\cup\;\operatorname{eig}(A_d-LC_d).
+\end{equation}
+Measured discrepancy: $4.8\times10^{-14}$. Only then are the margins read off.
+
+\subsection{Loop-at-a-time margins}
+
+Classical gain and phase margins are defined for a scalar loop. With three inputs
+the standard construction breaks one channel while the other two stay closed:
+\begin{equation}
+  L_i(z)=\Bigl[\,\text{feedback}\bigl(L_{\mathrm{in}},\,I_{2},\,\mathcal{O},\,\mathcal{O}\bigr)\Bigr]_{ii},
+  \qquad \mathcal{O}=\{1,2,3\}\setminus\{i\}.
+\end{equation}
+On $L_i(e^{j\omega T})$ the margins are the usual ones. The phase crossover
+$\omega_{180}$ satisfies $\angle L_i=-\SI{180}{\degree}$, and the gain crossover
+$\omega_c$ satisfies $|L_i|=1$:
+\begin{equation}
+  \mathrm{GM}=\frac{1}{|L_i(e^{j\omega_{180}T})|},
+  \qquad
+  \mathrm{PM}=\SI{180}{\degree}+\angle L_i(e^{j\omega_cT}).
+\end{equation}
+
+\paragraph{The gain margin is an interval, not a number.} For a stable plant it is
+enough to ask how much the gain may be \emph{raised}. Here $A_d$ has three
+eigenvalues outside the unit circle, so the Nyquist criterion requires a fixed
+number of encirclements of $-1$, and \emph{reducing} the gain destroys them just as
+raising it does. The loop is therefore stable only for
+$k\in(k_{\mathrm{lo}},k_{\mathrm{hi}})$ with $k_{\mathrm{lo}}<1<k_{\mathrm{hi}}$, and
+both edges must be quoted. Reporting only $\min_k$, as a stable-plant habit
+suggests, hides the lower edge --- which is the binding one here.
+
+\paragraph{Delay margin.} Extra transport delay $\tau$ multiplies the loop by
+$e^{-j\omega\tau}$, which subtracts phase without changing magnitude, so crossover
+stays at $\omega_c$ and the available phase is consumed at a rate $\omega_c$ per
+unit delay:
+\begin{equation}
+  \tau_{\max}=\frac{\mathrm{PM}\,[\si{\radian}]}{\omega_c}.
+  \label{eq:delaymargin}
+\end{equation}
+
+\subsection{Bounds valid in all loops at once}
+
+Loop-at-a-time margins can be optimistic: each assumes the other channels are
+exact. A simultaneous bound follows from the sensitivity functions
+\begin{equation}
+  S=(I+L_{\mathrm{in}})^{-1},\qquad
+  \mathcal{T}=L_{\mathrm{in}}(I+L_{\mathrm{in}})^{-1},\qquad
+  M_s=\lVert S\rVert_\infty .
+\end{equation}
+Since $\lVert S\rVert_\infty=\bigl[\min_\omega\sigma_{\min}(I+L)\bigr]^{-1}$, the
+quantity $1/M_s$ is the smallest distance from the Nyquist locus to the critical
+point $-1$. Two consequences follow geometrically.
+
+\paragraph{Phase.} At gain crossover the locus lies on the unit circle at angle
+$-\SI{180}{\degree}+\mathrm{PM}$. Its chord distance to $-1$ is
+$2\sin(\mathrm{PM}/2)$, and that distance cannot be smaller than $1/M_s$:
+\begin{equation}
+  2\sin\!\left(\frac{\mathrm{PM}}{2}\right)\ \ge\ \frac{1}{M_s}
+  \qquad\Longrightarrow\qquad
+  \mathrm{PM}\ \ge\ 2\arcsin\!\left(\frac{1}{2M_s}\right).
+\end{equation}
+
+\paragraph{Gain.} The locus meets the negative real axis at $-1/\mathrm{GM}$, whose
+distance to $-1$ is $1-1/\mathrm{GM}$. Requiring that to exceed $1/M_s$,
+\begin{equation}
+  1-\frac{1}{\mathrm{GM}}\ \ge\ \frac{1}{M_s}
+  \qquad\Longrightarrow\qquad
+  \mathrm{GM}\ \ge\ \frac{M_s}{M_s-1}.
+\end{equation}
+These hold in every loop simultaneously, so they are the honest figures for a
+multivariable design; the loop-at-a-time numbers are the optimistic ones.
+
+\subsection{Why $M_s$ cannot be made small here}
+
+A large $M_s$ on this plant is forced, not a symptom of poor tuning. The
+discrete-time Bode sensitivity integral states that for a loop with open-loop poles
+$z_i$ outside the unit circle,
+\begin{equation}
+  \frac{1}{2\pi}\int_{-\pi}^{\pi}\ln\bigl|S(e^{j\theta})\bigr|\,d\theta
+  \;=\;\sum_{|z_i|>1}\ln|z_i| \;\ge\;0 .
+\end{equation}
+The integral is a conserved positive area: sensitivity pushed below unity in one
+band must rise above it in another. With
+$z_i=\{1.1744,\,1.1193,\,1.1321\}$ the right-hand side is $0.3975$, so no
+controller whatsoever can keep $|S|$ small across the band. The peak lands between
+the unstable pole and the Nyquist frequency, where the loop is squeezed.
+
+\subsection{Results}
+
+At the current design point ($T=\SI{720}{\micro\second}$,
+$\lambda_r=\SI{100}{\hertz}$, $\lambda_e=\SI{300}{\hertz}$, \SI{60}{\micro\metre}
+total gap, $\max|\operatorname{eig}A_d|=1.1744$):
+
+\begin{table}[htbp]
+  \centering
+  \caption{Margins at the plant input, loop-at-a-time. The gain-margin interval is
+           quoted at both edges because the plant is open-loop unstable.}
+  \begin{tabular}{lcSSS}
+    \toprule
+    Channel & Gain margin [\si{\decibel}] & {PM [\si{\degree}]} & {$\omega_c/2\pi$ [\si{\hertz}]} & {$\tau_{\max}$ [\si{\micro\second}]} \\
+    \midrule
+    $\delta F_z$    & $[-4.22,\,+1.66]$ & 10.9 & 174.6 & 173 \\
+    $\delta\tau_x$  & $[-5.29,\,+1.73]$ & 11.7 & 178.7 & 181 \\
+    $\delta\tau_y$  & $[-5.04,\,+1.67]$ & 11.3 & 180.5 & 174 \\
+    \midrule
+    \multicolumn{5}{l}{\textit{same loop with the observer removed (full-state feedback)}} \\
+    $\delta F_z$    & $-6.73$ (lower edge) & 26.5 & 270.9 & {--} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\noindent
+With $M_s=255.1$ ($\SI{48.1}{\decibel}$) the simultaneous bounds are
+$\mathrm{GM}\ge\SI{0.034}{\decibel}$ and $\mathrm{PM}\ge\SI{0.22}{\degree}$. These
+are consistent with, and far weaker than, the loop-at-a-time figures, which is the
+expected ordering and serves as an arithmetic check.
+
+Three readings follow. The observer costs roughly \SI{60}{\percent} of the phase
+margin, \SI{26.5}{\degree} falling to \SI{10.9}{\degree}, which is the LQG result
+made concrete. The gain-margin window spans a factor of $0.61$ to $1.21$, so a
+\SI{20}{\percent} actuator gain error destabilises the loop --- tight, given that
+the force coefficient $b\propto g^{-2}$ varies fourfold across the travel. And the
+delay margin of \SIrange{173}{181}{\micro\second} sits against an acquisition delay
+of \SI{1130}{\micro\second}.
+
+\subsection{What these margins do and do not cover}
+
+The loop was broken at the plant \emph{input}, so $\tau_{\max}$ above is the
+tolerance to lag in the \emph{actuator} path. The acquisition delay is in the
+\emph{sensing} path, and for a multivariable system input-side and output-side
+margins are different quantities; the two coincide only in the scalar case.
+Comparing \SI{173}{\micro\second} against \SI{1130}{\micro\second} of sensing delay
+is therefore not a valid test, and an earlier version of this analysis made exactly
+that error. The correct instrument for sensing delay is to place it explicitly,
+\begin{equation}
+  G_\tau(z)=z^{-N}G(z),\qquad N=\tau/T,
+\end{equation}
+and test $\operatorname{eig}[\text{feedback}(KG_\tau,I)]$ directly. Doing so shows
+one tick of delay is tolerable at the \SI{60}{\micro\metre} gap and two is not,
+which no input-side margin predicts.
+
+The margins also describe the \emph{delay-blind} controller of
+\texttt{trapControlDesign}, which treats each measurement as current. The
+delay-aware design in \texttt{trapFullStateModel} carries the per-channel delays in
+its observer state and holds the plate through the full acquisition delay; its
+margins are a separate calculation on a different loop.
