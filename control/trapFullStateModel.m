@@ -1,4 +1,4 @@
-function M = trapFullStateModel(plant, varargin)
+﻿function M = trapFullStateModel(plant, varargin)
 %TRAPFULLSTATEMODEL Closed-form DT model with per-channel fractional delays,
 %                   plus LQI regulator and LQE (dual-LQI) observer gains.
 %
@@ -149,22 +149,26 @@ if any(delta < 0) || any(delta(1:3) >= T) || delta(4) >= T
         mat2str(delta'*1e6, 5));
 end
 
-% forward-propagated rows: sample at t_k + (T - delta_i), inside frame k
-fwd = @(tau) blkdiag(Ej(1,-tau), Ej(2,-tau), Ej(3,-tau));
-fwdG = @(tau) cell2mat(arrayfun(@(j) -gj(j,-tau), 1:3, 'uni',0));
+% Backward-propagated rows, exactly as the source derivation writes them:
+%   z[k+1] = C_i x(t_{k+1} - age_i) = C_i x(t_k - delta_i)
+% since age_i = T + delta_i for channels 1..3. The interval
+% [t_k - delta_i, t_k] lies inside frame k-1, so these rows carry u[k-1],
+% NOT u[k] -- that is the one index the derivation has wrong, and it is the
+% only thing wrong with Phi/Gamma.
+bwd = @(d) blkdiag(Ej(1,d), Ej(2,d), Ej(3,d));
 Phi = zeros(3,6); Gam = zeros(3,3);
 for i = 1:3
-    tau = T - delta(i);
     Gblk = zeros(6,3);
-    for j = 1:3, Gblk(2*j-1:2*j, j) = -gj(j,-tau); end
-    Phi(i,:) = Cc(i,:) * fwd(tau);
-    Gam(i,:) = Cc(i,:) * Gblk;
+    for j = 1:3, Gblk(2*j-1:2*j, j) = gj(j, delta(i)); end
+    Phi(i,:) = Cc(i,:) * bwd(delta(i));
+    Gam(i,:) = -Cc(i,:) * Gblk;
 end
-tau4 = T - delta(4);
+% Channel 4 has age < T, so its interval also lies in frame k-1 and its row
+% enters y[k] through Dbar*u[k-1] with delta_4 = age_4.
 G4 = zeros(6,3);
-for j = 1:3, G4(2*j-1:2*j, j) = -gj(j,-tau4); end
-Phi4 = Cc(4,:) * fwd(tau4);
-Gam4 = Cc(4,:) * G4;
+for j = 1:3, G4(2*j-1:2*j, j) = gj(j, delta(4)); end
+Phi4 = Cc(4,:) * bwd(delta(4));
+Gam4 = -Cc(4,:) * G4;
 
 %% ---------------- measurement and integral maps ----------------
 Cbar = [zeros(3,6), eye(3);
@@ -172,21 +176,25 @@ Cbar = [zeros(3,6), eye(3);
 Dbar = [zeros(3,3); Gam4];
 H    = 0.25*[1 1 1 1; 1/Lc 1/Lc -1/Lc -1/Lc; -1/Lc 1/Lc 1/Lc -1/Lc];
 
-Abar = [Ad, zeros(6,3); Phi, zeros(3,3)];
-Bbar = [Bd; Gam];
+% Observer plant. z[k+1] takes u[k-1], x[k+1] takes u[k], so the two inputs
+% enter through separate matrices:
+%   xbar[k+1] = Abar xbar[k] + Bbar u[k] + BbarPrev u[k-1]
+Abar     = [Ad, zeros(6,3); Phi, zeros(3,3)];
+Bbar     = [Bd; zeros(3,3)];
+BbarPrev = [zeros(6,3); Gam];
 
 %% ---------------- augmented system ----------------
 Cbx = [zeros(3,6); Phi4];
 Cbz = [eye(3); zeros(1,3)];
 nx = 6; nz = 3; nu = 3; ni = 3;
-% z[k+1] = Phi x[k] + Gamma u[k]: Gamma multiplies the CURRENT input, so it
-% belongs in Bchi. Putting it in the uPrev column of Achi would delay the
-% delayed-channel rows by a further frame.
+% z[k+1] = Phi x[k] + Gamma u[k-1]: the sample interval lies in frame k-1,
+% so Gamma multiplies the PREVIOUS input and belongs in the uPrev column of
+% Achi, which is where the source derivation puts it.
 Achi = [ Ad,            zeros(nx,nz), zeros(nx,nu), zeros(nx,ni);
-         Phi,           zeros(nz,nz), zeros(nz,nu), zeros(nz,ni);
+         Phi,           zeros(nz,nz), Gam,          zeros(nz,ni);
          zeros(nu,nx),  zeros(nu,nz), zeros(nu,nu), zeros(nu,ni);
         -T*H*Cbx,      -T*H*Cbz,     -T*H*Dbar,     eye(ni)];
-Bchi  = [Bd; Gam; eye(nu); zeros(ni,nu)];
+Bchi  = [Bd; zeros(nz,nu); eye(nu); zeros(ni,nu)];
 Brchi = [zeros(nx,ni); zeros(nz,ni); zeros(nu,ni); T*eye(ni)];
 
 %% ---------------- scaling ----------------
@@ -226,7 +234,7 @@ M.L  = Sxz * L_s / Sy;
 M.Ac=Ac; M.Bc=Bc; M.Cc=Cc; M.Ad=Ad; M.Bd=Bd;
 M.Phi=Phi; M.Gam=Gam; M.Phi4=Phi4; M.Gam4=Gam4;
 M.Cbar=Cbar; M.Dbar=Dbar; M.Cbx=Cbx; M.Cbz=Cbz; M.H=H;
-M.Abar=Abar; M.Bbar=Bbar;
+M.Abar=Abar; M.Bbar=Bbar; M.BbarPrev=BbarPrev;
 M.Achi=Achi; M.Bchi=Bchi; M.Brchi=Brchi;
 M.delta=delta; M.age=age; M.sigma=sigma; M.omega=omega; M.kappa=kappa;
 M.k=kk; M.Lc=Lc; M.T=T; M.dtChannel=dc; M.tI2C=ti;
