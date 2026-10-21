@@ -161,13 +161,13 @@ geo.damp.enhancement = 4*geo.mass.L/(pi^2*geo.gap.z0);            % [-] ~161
 % stabilisable with useful margin once p*tau approaches 1. At the default
 % 1050 us, p*tau = 1.20 -- already past it. The budget at this pole is
 % about 874 us, so one of these two numbers has to come down.
-geo.readout.dtChannel = 125e-6;    % [s] one conversion slot
+geo.readout.dtChannel = 180e-6;    % [s] one conversion slot = Tisr/4
 geo.readout.tI2C      = 500e-6;    % [s] bus transfer after the last conversion
-geo.readout.Tisr      = 700e-6;    % [s] controller interrupt period
+geo.readout.Tisr      = 720e-6;    % [s] controller interrupt period
 
 %% ===================== simulation settings =====================
 % Fixed step for the forward-Euler integration of the continuous plant
-% between ISR ticks. Must divide Tisr evenly: 700 us / 10 us = 70 steps.
+% between ISR ticks. Must divide Tisr evenly: 720 us / 10 us = 72 steps.
 geo.sim.dtEuler = 1e-5;             % [s]
 
 %% ===================== footprint primitives (quadrant 1) =====================
