@@ -1,4 +1,4 @@
-%% verifyTrapPipeline.m
+﻿%% verifyTrapPipeline.m
 % End-to-end checks of the levitation pipeline:
 %   trapDeviceGeometry -> trapCapacitance -> trapWrench -> trapDynamics
 %   with trapSensing on the readout branch and checkPoseValid on the
@@ -14,7 +14,7 @@ root = fileparts(fileparts(mfilename('fullpath')));
 addpath(fullfile(root,'config'), fullfile(root,'dynamics'), ...
         fullfile(root,'estimator'), fullfile(root,'presentation'));
 
-p = trapDeviceGeometry();
+p = trapDeviceGeometry('z0', 15e-6);   % COMSOL data was taken at the 15 um gap
 nFail = 0; verdict = {'FAIL','PASS'};
 chk = @(ok,msg) fprintf('  [%s] %s\n', verdict{logical(ok)+1}, msg);
 

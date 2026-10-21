@@ -25,8 +25,8 @@
     $I_{zz}$ & yaw moment of inertia & 1.7035e-10 & \si{\kilo\gram\metre\squared} \\
     \midrule
     \multicolumn{4}{l}{\textit{Gaps and travel}} \\
-    $g_0$ & nominal electrode gap at equilibrium & 15 & \si{\micro\metre} \\
-    $2g_0$ & total vertical channel height & 30 & \si{\micro\metre} \\
+    $g_0$ & nominal electrode gap at equilibrium & 30 & \si{\micro\metre} \\
+    $2g_0$ & total vertical channel height & 60 & \si{\micro\metre} \\
     $xy_0$ & nominal lateral clearance & 50 & \si{\micro\metre} \\
     $2xy_0$ & total lateral channel width & 100 & \si{\micro\metre} \\
     \midrule
@@ -36,8 +36,8 @@
     $T_{\mathrm{amb}}$ & ambient temperature & 300 & \si{\kelvin} \\
     \midrule
     \multicolumn{4}{l}{\textit{Squeeze-film damping}} \\
-    $c$ & translational damping, $c=4L^3P/(\pi^2\bar{v}g_0)$ & 1.5941e-07 & \si{\newton\second\per\metre} \\
-    $q$ & rotational damping, $q=(L^2/12)\,c$ & 4.7029e-13 & \si{\newton\metre\second\per\radian} \\
+    $c$ & translational damping, $c=4L^3P/(\pi^2\bar{v}g_0)$ & 7.9705e-08 & \si{\newton\second\per\metre} \\
+    $q$ & rotational damping, $q=(L^2/12)\,c$ & 2.3515e-13 & \si{\newton\metre\second\per\radian} \\
     $c_{\mathrm{shear}}$ & lateral (shear) damping & 9.9158e-10 & \si{\newton\second\per\metre} \\
     \midrule
     \multicolumn{4}{l}{\textit{Capacitance and sensing model}} \\
@@ -46,7 +46,7 @@
     $C_{g}$ & electrode-to-ground capacitance & 105.1 & \si{\femto\farad} \\
     $C_{f}$ & unmodelled fringing capacitance & 31.79 & \si{\femto\farad} \\
     $C_{0}$ & pose-independent floor, $C_{12}+C_g/2+C_f/2$ & 119.1 & \si{\femto\farad} \\
-    $C_{\mathrm{eff}}$ & effective pair capacitance at equilibrium & 414.6 & \si{\femto\farad} \\
+    $C_{\mathrm{eff}}$ & effective pair capacitance at equilibrium & 266.8 & \si{\femto\farad} \\
     $\ell$ & sensing-pair moment arm & 2250 & \si{\micro\metre} \\
     $a$ & actuation-pair moment arm & 1500 & \si{\micro\metre} \\
     \midrule
@@ -60,22 +60,22 @@
     \multicolumn{4}{l}{\textit{Controller}} \\
     $\lambda_r$ & regulator bandwidth & 100 & \si{\hertz} \\
     $\lambda_e$ & observer bandwidth & 300 & \si{\hertz} \\
-    $R_{\mathrm{LQR}}$ & LQR control weight (bisected to meet $\lambda_r$) & 0.5968 & -- \\
+    $R_{\mathrm{LQR}}$ & LQR control weight (bisected to meet $\lambda_r$) & 0.1562 & -- \\
     $V_{\mathrm{TIA}}$ & fixed bias on the TIA pair & 0 & \si{\volt} \\
     $V_{\max}$ & drive voltage clamp & 80 & \si{\volt} \\
     \midrule
     \multicolumn{4}{l}{\textit{Derived operating point}} \\
     $W$ & plate weight, $mg$ & 283.2 & \si{\micro\newton} \\
-    $V_{\mathrm{hov}}$ & hover voltage on each quadrant pair & 23.36 & \si{\volt} \\
-    $k_{zz}$ & heave stiffness at fixed voltage, $-2W/g_0$ & -37.76 & \si{\newton\per\metre} \\
-    $k_{\theta_x}$ & roll stiffness at fixed voltage & -7.7133e-05 & \si{\newton\metre\per\radian} \\
-    $k_{\theta_y}$ & pitch stiffness at fixed voltage & -8.5262e-05 & \si{\newton\metre\per\radian} \\
+    $V_{\mathrm{hov}}$ & hover voltage on each quadrant pair & 46.72 & \si{\volt} \\
+    $k_{zz}$ & heave stiffness at fixed voltage, $-2W/g_0$ & -18.88 & \si{\newton\per\metre} \\
+    $k_{\theta_x}$ & roll stiffness at fixed voltage & -3.8567e-05 & \si{\newton\metre\per\radian} \\
+    $k_{\theta_y}$ & pitch stiffness at fixed voltage & -4.2631e-05 & \si{\newton\metre\per\radian} \\
     $k_{xx}$ & lateral stiffness (passively trapped) & 0.1114 & \si{\newton\per\metre} \\
     $k_{\theta_z}$ & yaw stiffness (passively trapped) & 1.2534e-07 & \si{\newton\metre\per\radian} \\
-    $p_{z}$ & heave unstable rate, $\sqrt{2g/g_0}$ & 1144 & \si{\radian\per\second} \\
-    $p_{\theta_x}$ & roll unstable rate & 950 & \si{\radian\per\second} \\
-    $p_{\theta_y}$ & pitch unstable rate & 998.8 & \si{\radian\per\second} \\
-    $\cosh(p_zT)$ & per-tick velocity growth over one ISR, heave & 1.359 & -- \\
+    $p_{z}$ & heave unstable rate, $\sqrt{2g/g_0}$ & 808.7 & \si{\radian\per\second} \\
+    $p_{\theta_x}$ & roll unstable rate & 671.7 & \si{\radian\per\second} \\
+    $p_{\theta_y}$ & pitch unstable rate & 706.2 & \si{\radian\per\second} \\
+    $\cosh(p_zT)$ & per-tick velocity growth over one ISR, heave & 1.174 & -- \\
     \bottomrule
   \end{tabular}
 \end{table}

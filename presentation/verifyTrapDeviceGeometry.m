@@ -1,4 +1,4 @@
-%% verifyTrapDeviceGeometry.m
+﻿%% verifyTrapDeviceGeometry.m
 % Checks config/trapDeviceGeometry.m against everything established from
 % the COMSOL capacitance matrix. Run this after ANY edit to the geometry
 % struct -- a wrong terminal assignment or centroid is silent otherwise:
@@ -22,7 +22,7 @@ addpath(scriptDir, fullfile(fileparts(scriptDir),'config'));
 eps0 = 8.8541878128e-12;
 r2fun = @(y,yh) 1 - sum((y-yh).^2)/sum((y-mean(y)).^2);
 
-geo = trapDeviceGeometry();
+geo = trapDeviceGeometry('z0', 15e-6);   % COMSOL data was taken at the 15 um gap
 D = load(fullfile(scriptDir,'capMatrixSweep63_parsed.mat'));
 Cm = D.Cm; nPose = D.nPose; RES = geo.idx.resonator; FR = geo.idx.frame;
 bad = false(nPose,1);

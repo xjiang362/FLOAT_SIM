@@ -87,8 +87,12 @@
 % See also TRAPOPENLOOPSTIFFNESS, TRAPCONTROLDESIGN, SIMULATEFULLSTATELQI.
 
 ip = inputParser;
-ip.addParameter('rhoU',  1e-2);
-ip.addParameter('rhoI',  1e2);
+% Defaults chosen from a sweep at the 60 um gap with the full 1130 us
+% acquisition delay: the loop holds for rhoU >= 1e4 with rhoI <= 1e2, and
+% 1e5/1e1 sits centrally in that region. Faster weights (rhoU <= 1e2) do
+% not survive the delay.
+ip.addParameter('rhoU',  1e5);
+ip.addParameter('rhoI',  1e1);
 ip.addParameter('qProc', 1);
 ip.addParameter('rMeas', 1e-2);
 ip.addParameter('Tisr',      plant.readout.Tisr);

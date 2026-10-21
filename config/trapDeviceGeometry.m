@@ -120,8 +120,14 @@ geo.mass.I    = diag([Ixx Iyy Izz]);
 geo.mass.Iinv = diag(1./[Ixx Iyy Izz]);
 
 %% ===================== channel / gaps =====================
+% DEFAULT GAP: 30 um equilibrium, 60 um total channel.
+% The original 15 um gives p = 182.0 Hz and p*t_d = 1.29 against the 1130 us
+% acquisition delay -- past the stabilisability bound, so no controller holds
+% the plate. Opening the channel to 60 um takes p to 128.7 Hz and p*t_d to
+% 0.914, and with the delay-aware observer in trapFullStateModel the loop
+% holds through the full delay. Pass 'z0', 15e-6 to recover the old device.
 ipG = inputParser;
-ipG.addParameter('z0',  15*um, @(v) isscalar(v) && v > 0);
+ipG.addParameter('z0',  30*um, @(v) isscalar(v) && v > 0);
 ipG.addParameter('xy0', 50*um, @(v) isscalar(v) && v > 0);
 ipG.parse(varargin{:});
 

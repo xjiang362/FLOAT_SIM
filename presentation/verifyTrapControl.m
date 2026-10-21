@@ -10,7 +10,10 @@ addpath(fullfile(root,'config'), fullfile(root,'dynamics'), ...
         fullfile(root,'presentation'));
 p = trapDeviceGeometry();
 K = trapControlDesign(p);
-R = load(fullfile(root,'presentation','reportNumbers.mat')); Kstiff = R.R.K;
+% Derive the stiffness from the LIVE plant rather than loading
+% reportNumbers.mat, which was captured at the 15 um gap and does not track
+% a change of geometry.
+Kstiff = trapOpenLoopStiffness(p, 'Vtia', 0);
 verdict = {'FAIL','PASS'};
 chk = @(ok,msg) fprintf('  [%s] %s\n', verdict{logical(ok)+1}, msg);
 
@@ -68,16 +71,26 @@ for mode = 1:2
     fprintf('  %-45s max|z| = %.4f  %s\n', nm, max(abs(ev)), lab{(max(abs(ev))<1)+1});
 end
 
-%% ---- 4. delay, which the design ignores entirely ----
-fprintf('\n=== 4. loop delay vs the unstable pole ===\n');
+%% ---- 4. delay, which THIS design ignores entirely ----
+% The check below applies to a delay-BLIND loop, which is what
+% trapControlDesign produces: it treats the measurement as current, so the
+% acquisition delay is unmodelled lag and must fit inside 1/wu.
+%
+% It is not the last word on the device. trapFullStateModel carries the
+% per-channel delays in the observer state, and with it the loop holds the
+% plate through the full acquisition delay even where this check fails --
+% see plotDelayAwareLevitation. A FAIL here means "do not use THIS
+% controller with that delay", not "the delay is unsurvivable".
+fprintf('\n=== 4. loop delay vs the unstable pole (delay-blind design) ===\n');
 wu = sqrt(abs(Kstiff(3,3))/p.mass.m);
 tSense = p.readout.tI2C + p.readout.dtChannel*3;
 tTotal = tSense + K.Tisr;
-fprintf('  sensing delay   %.0f us\n', tSense*1e6);
+fprintf('  sensing delay   %.0f us  (wu*t = %.2f on its own)\n', tSense*1e6, wu*tSense);
 fprintf('  + one ISR       %.0f us\n', K.Tisr*1e6);
 fprintf('  = loop delay    %.0f us\n', tTotal*1e6);
 fprintf('  wu*td = %.2f  (needs to be well below 1)\n', wu*tTotal);
 chk(wu*tTotal < 1, sprintf('loop delay within the unstable-pole budget (%.0f us)', 1e6/wu));
+fprintf('  if this FAILS, use the delay-aware design in trapFullStateModel.\n');
 
 %% ---- 5. estimator noise gain ----
 fprintf('\n=== 5. estimator noise amplification ===\n');

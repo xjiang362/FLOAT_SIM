@@ -1,4 +1,4 @@
-%% verifyTrapCapToHeight.m
+﻿%% verifyTrapCapToHeight.m
 % Round-trips the sensing inversion and quantifies its two error sources.
 %
 %   pose -> trapCapacitance -> trapSensing -> trapCapToHeight -> pose
@@ -12,7 +12,7 @@ clear; clc;
 root = fileparts(fileparts(mfilename('fullpath')));
 addpath(fullfile(root,'config'), fullfile(root,'dynamics'), ...
         fullfile(root,'estimator'), fullfile(root,'presentation'));
-p = trapDeviceGeometry();
+p = trapDeviceGeometry('z0', 15e-6);   % COMSOL data was taken at the 15 um gap
 verdict = {'FAIL','PASS'};
 chk = @(ok,msg) fprintf('  [%s] %s\n', verdict{logical(ok)+1}, msg);
 
