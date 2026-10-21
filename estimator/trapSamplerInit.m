@@ -57,6 +57,9 @@ if nargin < 2 || isempty(Tisr), Tisr = plant.readout.Tisr; end
 ip = inputParser;
 ip.addParameter('dtChannel', plant.readout.dtChannel, @(v) isscalar(v) && v >= 0);
 ip.addParameter('tI2C',      plant.readout.tI2C,      @(v) isscalar(v) && v >= 0);
+% 6-by-1 pose to pre-fill the acquisition history with, so delayed samples
+% are available from the first tick. Pass the simulation's initial pose.
+ip.addParameter('seedPose',  [], @(v) isempty(v) || numel(v) == 6);
 ip.parse(varargin{:});
 
 s.plant     = plant;
@@ -77,5 +80,26 @@ s.tBuf = nan(1, s.nBuf);
 s.cBuf = nan(s.nCh, s.nBuf);
 s.head = 0;          % number of samples written
 s.ready = false;     % true once the buffer reaches back far enough
+
+% ---- optional pre-fill ----
+% Without this the buffer needs ceil(maxAge/Tisr) ticks before it can serve
+% a delayed sample, and a caller that substitutes the UNDELAYED value in the
+% meantime runs the loop delay-free and then switches the delay on in one
+% step. On an open-loop unstable plant that step is itself a disturbance:
+% started at exact equilibrium with no input, the loop then drove itself
+% 22 um into the wall, which no correct loop can do.
+%
+% Seeding fills the history as if the plate had been resting at seedPose for
+% the whole maxAge window, so the delay is fully represented from the first
+% tick and the measurement is consistent with the model throughout.
+if ~isempty(ip.Results.seedPose)
+    Cseed = trapSensing(plant, trapCapacitance(plant, ip.Results.seedPose(:)));
+    for j = 1:s.nBuf
+        s.tBuf(j)   = (j - s.nBuf - 1)*Tisr;   % times -nBuf*T .. -T
+        s.cBuf(:,j) = Cseed;
+    end
+    s.head  = s.nBuf;      % next write lands on slot 1, the oldest
+    s.ready = true;
+end
 end
 

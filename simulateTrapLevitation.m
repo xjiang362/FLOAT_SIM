@@ -56,7 +56,12 @@ if abs(nSub*dt - Tisr) > 1e-12
 end
 nTick = floor(tEnd/Tisr);
 
-s = trapSamplerInit(plant, Tisr);
+% Seed the acquisition history from the initial pose. Without this the
+% sampler cannot serve a delayed sample for the first ceil(maxAge/Tisr)
+% ticks, the loop silently runs delay-free over that window, and the delay
+% then appears in one step -- a disturbance large enough to destabilise the
+% plant on its own. See the note in trapSamplerInit.
+s = trapSamplerInit(plant, Tisr, 'seedPose', x0(1:6));
 
 % sensing-point coordinates, for seeding the estimator
 sInfoPt = zeros(4,2);
