@@ -1,7 +1,23 @@
-﻿function geo = trapDeviceGeometry()
+﻿function geo = trapDeviceGeometry(varargin)
 %TRAPDEVICEGEOMETRY Single source of truth for the trap device geometry.
 %
 %   geo = trapDeviceGeometry()
+%   geo = trapDeviceGeometry('z0', 30e-6)     % widen the vertical gap
+%   geo = trapDeviceGeometry('xy0', 60e-6)    % widen the lateral gap
+%
+% CHANGING THE GAP. Pass 'z0' rather than editing the returned struct. The
+% equilibrium gap propagates into the channel height, the travel limits,
+% all three squeeze-film damping coefficients, the proximity enhancement
+% factor and the frame bottom-plate gap, and patching geo.gap.z0 afterwards
+% silently leaves those stale. Everything below derives from the parameter,
+% so one call keeps the device self-consistent.
+%
+% Note the unstable rate follows the gap as p = sqrt(2g/z0): 182 Hz at the
+% nominal 15 um, 129 Hz at 30 um. Widening the gap therefore buys delay
+% margin at the cost of drive voltage (~z0) and position sensitivity
+% (~1/z0^2). What it does NOT update is geo.ceff (C12, Cg, Cf), which were
+% extracted from COMSOL at z0 = 15 um; the model stays internally
+% consistent at any gap but those constants are uncalibrated elsewhere.
 %
 % Returns one struct describing the levitated mass, the channel it floats
 % in, and all 22 capacitance-matrix terminals with the footprint data the
@@ -104,12 +120,17 @@ geo.mass.I    = diag([Ixx Iyy Izz]);
 geo.mass.Iinv = diag(1./[Ixx Iyy Izz]);
 
 %% ===================== channel / gaps =====================
-geo.gap.z0        = 15*um;               % equilibrium, mass centred
-geo.gap.zChannel  = 30*um;               % total height
-geo.gap.zTravel   = 15*um;               % |rz| to contact
-geo.gap.xy0       = 50*um;               % equilibrium lateral
-geo.gap.xyChannel = 100*um;              % total lateral width
-geo.gap.xyTravel  = 50*um;               % |rx|,|ry| to contact
+ipG = inputParser;
+ipG.addParameter('z0',  15*um, @(v) isscalar(v) && v > 0);
+ipG.addParameter('xy0', 50*um, @(v) isscalar(v) && v > 0);
+ipG.parse(varargin{:});
+
+geo.gap.z0        = ipG.Results.z0;      % equilibrium, mass centred
+geo.gap.zChannel  = 2*geo.gap.z0;        % total height
+geo.gap.zTravel   = geo.gap.z0;          % |rz| to contact
+geo.gap.xy0       = ipG.Results.xy0;     % equilibrium lateral
+geo.gap.xyChannel = 2*geo.gap.xy0;       % total lateral width
+geo.gap.xyTravel  = geo.gap.xy0;         % |rx|,|ry| to contact
 
 %% ===================== gas damping (TUNABLE) =====================
 % Squeeze-film damping in the free-molecular regime. At 0.1 mTorr the mean
